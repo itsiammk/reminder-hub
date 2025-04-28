@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 interface EventFormProps {
   onSubmit: (formData: {
     title?: string;
-    date?: string;
+    dateTime?: string; // Changed from date
     email: string;
     phone: string;
     whatsapp: string;
@@ -19,7 +19,8 @@ interface EventFormProps {
 export function EventForm({ onSubmit, submitText }: EventFormProps) {
   const [form, setForm] = useState({
     title: '',
-    date: '',
+    date: '', // For date input
+    time: '', // For time input
     email: '',
     phone: '',
     whatsapp: '',
@@ -27,7 +28,15 @@ export function EventForm({ onSubmit, submitText }: EventFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(form);
+    // Combine date and time into ISO string
+    const dateTime = form.date && form.time ? `${form.date}T${form.time}:00Z` : undefined;
+    onSubmit({
+      title: form.title,
+      dateTime, // Pass combined dateTime
+      email: form.email,
+      phone: form.phone,
+      whatsapp: form.whatsapp,
+    });
   };
 
   return (
@@ -53,6 +62,16 @@ export function EventForm({ onSubmit, submitText }: EventFormProps) {
                   type="date"
                   value={form.date}
                   onChange={(e) => setForm({ ...form, date: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="time">Event Time</Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={form.time}
+                  onChange={(e) => setForm({ ...form, time: e.target.value })}
                   required
                 />
               </div>
@@ -88,7 +107,7 @@ export function EventForm({ onSubmit, submitText }: EventFormProps) {
               onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
             />
           </div>
-          <Button type="submit" className="w-full"> 
+          <Button type="submit" className="w-full">
             {submitText}
           </Button>
         </form>

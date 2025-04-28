@@ -1,19 +1,21 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getDb } from '@/lib/db';
 
-// Placeholder: Replace with MongoDB fetch
 async function fetchEvent(id: string) {
-  return {
-    title: 'Ram’s Birthday',
-    date: '2025-06-23',
-    eventId: id,
-  };
+  const db = await getDb();
+  const event = await db.collection('events').findOne({ shareLink: `/events/${id}` });
+  return event || null;
 }
 
-export default async function EventPage({ params }: { params: { id: string } }) {
-  const event = await fetchEvent(params.id);
-  const shareLink = `${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/events/${params.id}`;
+export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; // Await params to get id
+  const event = await fetchEvent(id);
+  if (!event) {
+    return <div>Event not found</div>;
+  }
+  const shareLink = `${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/events/${id}`;
 
   return (
     <div className="w-full max-w-md">
@@ -22,9 +24,9 @@ export default async function EventPage({ params }: { params: { id: string } }) 
           <CardTitle>{event.title}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-2">Date: {new Date(event.date).toDateString()}</p>
+          <p className="mb-2">Date & Time: {new Date(event.dateTime).toLocaleString()}</p>
           <p className="mb-4">Share Link: <span className="text-primary">{shareLink}</span></p>
-          <Link href={`/events/${params.id}/join`}>
+          <Link href={`/events/${id}/join`}>
             <Button>Join Event</Button>
           </Link>
         </CardContent>
